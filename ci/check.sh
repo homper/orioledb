@@ -16,15 +16,25 @@ sudo sh -c "echo \"/tmp/cores-$GITHUB_SHA-$TIMESTAMP/%t_%p.core\" > /proc/sys/ke
 
 
 status=0
-THREADS=4
 
 cd orioledb
 if [ $CHECK_TYPE = "valgrind_1" ]; then
-	make USE_PGXS=1 VALGRIND=1 regresscheck isolationcheck testgrescheck_part_1 -j$THREADS || status=$?
+	make USE_PGXS=1 VALGRIND=1 regresscheck isolationcheck testgrescheck_part_1 -j$(nproc) || status=$?
 elif [ $CHECK_TYPE = "valgrind_2" ]; then
-	make USE_PGXS=1 VALGRIND=1 testgrescheck_part_2 -j$THREADS || status=$?
+	make USE_PGXS=1 VALGRIND=1 testgrescheck_part_2 -j$(nproc) || status=$?
+elif [ $CHECK_TYPE = "world" ]; then
+	cd ..
+	rm -rf pg${PGVERSION}_data
+	rm -f logfile
+	initdb -D pg${PGVERSION}_data
+	sed -ie "s/#shared_preload_libraries = ''/shared_preload_libraries = 'orioledb'/" pg${PGVERSION}_data/postgresql.conf
+	pg_ctl -D pg${PGVERSION}_data -l logfile start
+	cd postgresql
+	make installcheck-world -j$(nproc) || status=$?
+	cd ..
+	pg_ctl -D pg${PGVERSION}_data stop
 else
-	make USE_PGXS=1 installcheck -j$THREADS || status=$?
+	make USE_PGXS=1 installcheck -j$(nproc) || status=$?
 fi
 cd ..
 

@@ -13,7 +13,7 @@ if [ $CHECK_TYPE = "valgrind_1" ] || [ $CHECK_TYPE = "valgrind_2" ]; then
 fi
 
 # configure & build
-if [ $CHECK_TYPE = "normal" ]; then
+if [ $CHECK_TYPE = "normal" ] || [ $CHECK_TYPE = "world" ]; then
 	CONFIG_ARGS="--disable-debug --disable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
 else
 	CONFIG_ARGS="--enable-debug --enable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
@@ -21,8 +21,8 @@ fi
 
 cd postgresql
 ./configure $CONFIG_ARGS
-make -sj4
-make -sj4 install
+make -s -j$(nproc)
+make -s -j$(nproc) install
 cd ..
 
 if [ $CHECK_TYPE = "static" ] && [ $COMPILER = "clang" ]; then
@@ -36,6 +36,10 @@ if [ $CHECK_TYPE = "alignment" ]; then
 	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -fsanitize=alignment -fno-sanitize-recover=alignment" LDFLAGS_SL="-lubsan"
 elif [ $CHECK_TYPE = "check_page" ]; then
 	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -DCHECK_PAGE_STRUCT"
+elif [ $CHECK_TYPE = "world" ]; then
+	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror" install
+	cd ../postgresql
+	make install-world-bin -j$(nproc)
 elif [ $CHECK_TYPE != "static" ]; then
 	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -coverage"
 fi

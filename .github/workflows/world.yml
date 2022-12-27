@@ -1,0 +1,45 @@
+name: world
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  check_world:
+    runs-on: [ubuntu-20.04]
+    strategy:
+      fail-fast: true
+      matrix:
+        pg_version: [13, 14, 15]
+        compiler: [clang, gcc]
+    env:
+      LLVM_VER: 12
+      CHECK_TYPE: world
+      COMPILER: ${{ matrix.compiler }}
+      PGVERSION: ${{ matrix.pg_version }}
+    steps:
+      - name: Checkout extension code into workspace directory
+        uses: actions/checkout@v3
+        with:
+          path: orioledb
+      - name: Get the required tag name
+        shell: bash
+        run: |
+          echo "PGTAG=$(grep '^${{ matrix.pg_version }}: ' orioledb/.pgtags | cut -d' ' -f2-)" >> $GITHUB_ENV
+      - name: Checkout PostgreSQL code into workspace directory
+        uses: actions/checkout@v3
+        with:
+          repository: orioledb/postgres
+          ref: ${{ env.PGTAG }}
+          path: postgresql
+      - name: Setup prerequisites
+        run: bash ./orioledb/ci/prerequisites.sh
+      - name: Build
+        run: bash ./orioledb/ci/build.sh
+      - name: Check world
+        run: bash ./orioledb/ci/check.sh
+      - name: Check world output
+        run: bash ./orioledb/ci/check_output.sh
+        if: ${{ success() || failure() }}
