@@ -23,16 +23,9 @@ if [ $CHECK_TYPE = "valgrind_1" ]; then
 elif [ $CHECK_TYPE = "valgrind_2" ]; then
 	make USE_PGXS=1 VALGRIND=1 testgrescheck_part_2 -j$(nproc) || status=$?
 elif [ $CHECK_TYPE = "world" ]; then
-	cd ..
-	rm -rf pg${PGVERSION}_data
-	rm -f logfile
-	initdb -D pg${PGVERSION}_data
-	sed -ie "s/#shared_preload_libraries = ''/shared_preload_libraries = 'orioledb'/" pg${PGVERSION}_data/postgresql.conf
-	pg_ctl -D pg${PGVERSION}_data -l logfile start
-	cd postgresql
-	make installcheck-world -j$(nproc) || status=$?
-	cd ..
-	pg_ctl -D pg${PGVERSION}_data stop
+	cd ../postgresql
+	EXTRA_INSTALL=contrib/orioledb TEMP_CONFIG=$PWD/../orioledb/ci/world.conf \
+		make check-world -j$(nproc) || status=$?
 else
 	make USE_PGXS=1 installcheck -j$(nproc) || status=$?
 fi

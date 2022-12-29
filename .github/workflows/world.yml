@@ -18,7 +18,6 @@ jobs:
       LLVM_VER: 12
       CHECK_TYPE: world
       COMPILER: ${{ matrix.compiler }}
-      PGVERSION: ${{ matrix.pg_version }}
     steps:
       - name: Checkout extension code into workspace directory
         uses: actions/checkout@v3

@@ -37,9 +37,11 @@ if [ $CHECK_TYPE = "alignment" ]; then
 elif [ $CHECK_TYPE = "check_page" ]; then
 	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -DCHECK_PAGE_STRUCT"
 elif [ $CHECK_TYPE = "world" ]; then
-	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror" install
 	cd ../postgresql
-	make install-world-bin -j$(nproc)
+	cp -R ../orioledb contrib
+	cd contrib/orioledb
+	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror"
+	cd ../..
 elif [ $CHECK_TYPE != "static" ]; then
 	make USE_PGXS=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -coverage"
 fi
