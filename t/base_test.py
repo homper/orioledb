@@ -71,6 +71,8 @@ class BaseTest(unittest.TestCase):
 		self.node.append_conf('postgresql.conf',
 		                      "shared_preload_libraries = orioledb\n")
 
+		print(f"TEST: {inspect.getfile(self.__class__)}, DIR: {self.node.base_dir}")
+
 	def list2reason(self, exc_list):
 		if exc_list and exc_list[-1][0] is self:
 			return exc_list[-1][1]

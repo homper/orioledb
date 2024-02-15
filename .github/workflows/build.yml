@@ -42,7 +42,6 @@ jobs:
       - name: Check output
         run: bash ./orioledb/ci/check_output.sh
         if: ${{ success() || failure() }}
-      - name: Codecov
-        run: bash ./orioledb/ci/codecov.sh
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: "Just output orphan processes (TODO: Add gdb stack output)"
+        run: bash ./orioledb/ci/list_stuck.sh
+        if: ${{ success() || failure() }}
