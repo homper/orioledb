@@ -1,5 +1,8 @@
 name: dockerTEST
 
+on:
+  workflow_dispatch:
+
 defaults:
   run:
     shell: bash

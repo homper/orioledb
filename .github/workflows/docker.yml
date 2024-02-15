@@ -1,5 +1,8 @@
 name: dockerhub
 
+on:
+  workflow_dispatch:
+
 jobs:
   push_to_registry:
     strategy:

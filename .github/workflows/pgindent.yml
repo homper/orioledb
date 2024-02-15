@@ -1,5 +1,8 @@
 name: pgindent
 
+on:
+  workflow_dispatch:
+
 jobs:
   pgindent:
     runs-on:
