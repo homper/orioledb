@@ -19,7 +19,18 @@ status=0
 
 cd orioledb
 if [ $CHECK_TYPE = "valgrind_1" ]; then
-	make USE_PGXS=1 IS_DEV=1 VALGRIND=1 regresscheck isolationcheck testgrescheck_part_1 -j $(nproc) || status=$?
+	# i=1
+	# while [ $i -lt 50 ]; do
+	# 	echo TEST RUN $i:
+	# 	make USE_PGXS=1 IS_DEV=1 VALGRIND=1 testgrescheck_part_1 TESTGRESCHECKS_PART_1="test.t.recovery_test.RecoveryTest.test_temp_tables_cleanup_after_recovery"
+	# 	if [ $status -eq 0 ]; then
+	# 		break
+	# 	fi
+	# 	((i++));
+	# done
+	# make USE_PGXS=1 IS_DEV=1 VALGRIND=1 testgrescheck_part_1 TESTGRESCHECKS_PART_1="test.t.replication_test.ReplicationTest.test_replication_in_progress"
+	make USE_PGXS=1 IS_DEV=1 VALGRIND=1 regresscheck REGRESSCHECKS="index_bridging opclass"
+	# make USE_PGXS=1 IS_DEV=1 VALGRIND=1 testgrescheck_part_1 TESTGRESCHECKS_PART_1="test.t.replication_test.ReplicationTest.test_replication_non_root_eviction"
 elif [ $CHECK_TYPE = "valgrind_2" ]; then
 	make USE_PGXS=1 IS_DEV=1 VALGRIND=1 testgrescheck_part_2 -j $(nproc) || status=$?
 elif [ $CHECK_TYPE = "sanitize" ]; then

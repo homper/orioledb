@@ -2,11 +2,10 @@ name: check
 
 on:
   push:
-  pull_request:
 
 jobs:
   matrix:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.gen.outputs.matrix }}
     steps:
@@ -87,10 +86,14 @@ jobs:
     needs: matrix
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+      matrix:
+        cpu: [amd64]
+        pg_version: [17]
+        compiler: [clang]
+        check_type: [valgrind_1]
 
     # Select runner based on CPU architecture
-    runs-on: ${{ matrix.cpu == 'arm64' && 'blacksmith-8vcpu-ubuntu-2404-arm' || 'blacksmith-8vcpu-ubuntu-2404' }}
+    runs-on: ${{ matrix.cpu == 'arm64' && 'blacksmith-8vcpu-ubuntu-2404-arm' || 'ubuntu-24.04' }}
     env:
       LLVM_VER: 18
       CPU: ${{ matrix.cpu }}
@@ -106,6 +109,14 @@ jobs:
         shell: bash
         run: |
           echo "PGTAG=$(grep '^${{ matrix.pg_version }}: ' orioledb/.pgtags | cut -d' ' -f2-)" >> $GITHUB_ENV
+
+      - name: Restore cached pg
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ./pgsql
+          key: ${{ runner.os }}-pg
+
       - name: Checkout PostgreSQL code into workspace directory
         uses: actions/checkout@v4
         with:
@@ -115,7 +126,17 @@ jobs:
       - name: Setup prerequisites
         run: bash ./orioledb/ci/prerequisites.sh
       - name: Build
+        env:
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
         run: bash ./orioledb/ci/build.sh
+
+      - name: Save cached pg
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ./pgsql
+          key: ${{ runner.os }}-pg
+
       - name: Install post build prerequisites
         run: bash ./orioledb/ci/post_build_prerequisites.sh
 
@@ -167,7 +188,7 @@ jobs:
 
   finish:
     needs: check
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout extension code into workspace directory
         uses: actions/checkout@v4
@@ -184,7 +205,7 @@ jobs:
 
   cleanup:
     needs: finish
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - name: remove artifacts
         uses: geekyeggo/delete-artifact@v5

@@ -46,29 +46,37 @@ class ReplicationTest(BaseTest):
 					) USING orioledb;""")
 				replica.catchup()
 
-				master.safe_psql("""INSERT INTO o_test (
-									SELECT id, id || 'val'
-									FROM
-									generate_series(1, 10000, 1) id);""")
-				master.safe_psql("""DELETE FROM o_test WHERE id > 5000;""")
-				master.safe_psql("""INSERT INTO o_test (
-									SELECT id, id || 'val'
-									FROM
-									generate_series(5001, 7500, 1) id);""")
-				replica.catchup()
+				i = 0
+				while i < 100:
+					print(i, flush=True)
+					i += 1
+					master.safe_psql("""INSERT INTO o_test (
+										SELECT id, id || 'val'
+										FROM
+										generate_series(1, 10000, 1) id);""")
+					master.safe_psql("""DELETE FROM o_test WHERE id > 5000;""")
+					master.safe_psql("""INSERT INTO o_test (
+										SELECT id, id || 'val'
+										FROM
+										generate_series(5001, 7500, 1) id);""")
+					replica.catchup()
 
-				# ensure that we do not see in-progress transaction on the replica
-				count = replica.execute(
-				    """SELECT COUNT(*) FROM o_test;""")[0][0]
-				self.assertTrue(count == 0 or count == 10000 or count == 5000
-				                or count == 7500)
-				count = replica.execute(
-				    """SELECT count(*) FROM (SELECT * FROM o_test ORDER BY id DESC) id;"""
-				)[0][0]
-				self.assertTrue(count == 0 or count == 10000 or count == 5000
-				                or count == 7500)
-				replica.poll_query_until(
-				    "SELECT orioledb_has_retained_undo();", expected=False)
+					# ensure that we do not see in-progress transaction on the replica
+					count = replica.execute(
+						"""SELECT COUNT(*) FROM o_test;""")[0][0]
+					print(count, flush=True)
+					self.assertTrue(count == 0 or count == 10000 or count == 5000
+									or count == 7500)
+					count = replica.execute(
+						"""SELECT count(*) FROM (SELECT * FROM o_test ORDER BY id DESC) id;"""
+					)[0][0]
+					self.assertTrue(count == 0 or count == 10000 or count == 5000
+									or count == 7500)
+					replica.poll_query_until(
+						"SELECT orioledb_has_retained_undo();", expected=False)
+
+					master.execute("TRUNCATE o_test;")
+					replica.catchup()
 
 	def test_replication_drop(self):
 		with self.node as master:
@@ -376,25 +384,41 @@ class ReplicationTest(BaseTest):
 				    "	PRIMARY KEY (key)\n"
 				    ") USING orioledb;\n")
 
-				n = 500000
-				con = master.connect()
-				con.begin()
-				con.execute(
-				    "INSERT INTO o_test (SELECT id, %s - id, repeat('x', 1000) FROM generate_series(%s, %s, 1) id);"
-				    % (str(n), str(1), str(n)))
-				con.commit()
-				con.close()
+				con1 = replica.connect()
+				t1 = ThreadQueryExecutor(con1, "CHECKPOINT;")
+				i = 0
+				while i < 100:
+					print(i, flush=True)
+					i += 1
+					n = 500000
+					con = master.connect()
+					con.begin()
+					con.execute(
+						"INSERT INTO o_test (SELECT id, %s - id, repeat('x', 1000) FROM generate_series(%s, %s, 1) id);"
+						% (str(n), str(1), str(n)))
+					con.commit()
+					con.close()
 
-				# wait for synchronization
-				self.catchup_orioledb(replica)
+					# wait for synchronization
+					self.catchup_orioledb(replica)
 
-				replica.poll_query_until(
-				    "SELECT orioledb_has_retained_undo();", expected=False)
-				self.assertEqual(
-				    500000,
-				    replica.execute(
-				        "SELECT count(*) FROM (SELECT * FROM o_test ORDER BY key) x;"
-				    )[0][0])
+					t1.start()
+					replica.poll_query_until(
+						"SELECT orioledb_has_retained_undo();", expected=False)
+					self.assertEqual(
+						500000,
+						replica.execute(
+							"SELECT count(*) FROM (SELECT * FROM o_test ORDER BY key) x;"
+						)[0][0])
+					t1.join()
+
+					master.execute("TRUNCATE o_test;")
+
+					self.catchup_orioledb(replica)
+
+					con1.close()
+					con1 = replica.connect()
+					t1 = ThreadQueryExecutor(con1, "CHECKPOINT;")
 
 	def test_replication_root_eviction(self):
 		INDEX_NOT_LOADED = "Index o_evicted_pkey: not loaded"
