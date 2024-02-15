@@ -1,9 +1,5 @@
 name: pgindent
 
-on:
-  push:
-  pull_request:
-
 jobs:
   pgindent:
     runs-on:
