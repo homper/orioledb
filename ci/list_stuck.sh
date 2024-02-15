@@ -1,3 +1,5 @@
-pgrep postgres | xargs ps
-pgrep memcheck | xargs ps
-pgrep python | xargs ps
+pgrep postgres | xargs -r ps
+pgrep memcheck | xargs -r ps
+pgrep python | xargs -r ps
+
+pgrep postgres | xargs -r gdb --batch --quiet -ex "thread apply all bt full" -ex "quit" -p
