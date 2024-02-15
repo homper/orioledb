@@ -12,7 +12,7 @@ jobs:
       matrix:
         pg_version: [15]
         compiler: [gcc]
-        check_type: [alignment]
+        check_type: [debug]
     env:
       LLVM_VER: 12
       CPU: ${{ matrix.cpu }}
