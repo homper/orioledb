@@ -44,4 +44,4 @@ jobs:
         if: ${{ success() || failure() }}
       - name: "Just output orphan processes (TODO: Add gdb stack output)"
         run: bash ./orioledb/ci/list_stuck.sh
-        if: ${{ success() || failure() }}
+        if: ${{ always() }}
