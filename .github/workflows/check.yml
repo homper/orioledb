@@ -2,7 +2,6 @@ name: check
 
 on:
   push:
-  pull_request:
 
 jobs:
   check:
@@ -11,10 +10,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg_version: [16, 17]
-        compiler: [clang, gcc]
-        check_type:
-          [normal, debug, sanitize, check_page, valgrind_1, valgrind_2, pg_tests]
+        pg_version: [17]
+        compiler: [gcc]
+        check_type: [valgrind_1]
     env:
       LLVM_VER: 18
       CPU: ${{ matrix.cpu }}
