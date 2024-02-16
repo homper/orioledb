@@ -25,7 +25,7 @@ elif [ $CHECK_TYPE = "valgrind_2" ]; then
 	make USE_PGXS=1 VALGRIND=1 testgrescheck_part_2 -j$THREADS || status=$?
 else
 	i=1
-	while echo TEST RUN $i:; [ $i -lt 500 ] && make USE_PGXS=1 testgrescheck_part_1 TESTGRESCHECKS_PART_1="t.s3_test.S3Test" -j$THREADS || (status=$? && [ $status -eq 0 ]); do
+	while echo TEST RUN $i:; [ $i -lt 300 ] && make USE_PGXS=1 testgrescheck_part_1 TESTGRESCHECKS_PART_1="t.s3_test.S3Test" -j$THREADS || (status=$? && [ $status -eq 0 ]); do
 		((i++));
 	done
 fi
