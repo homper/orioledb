@@ -50,7 +50,8 @@ jobs:
       - name: Show stuck processes
         run: bash ./orioledb/ci/list_stuck.sh
         if: ${{ always() }}
-      - name: Codecov
-        run: bash ./orioledb/ci/codecov.sh
+      - name: Coveralls
+        run: bash ./orioledb/ci/coveralls.sh
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          COVERALLS_PARALLEL: true

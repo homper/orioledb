@@ -12,7 +12,7 @@ if [ $GITHUB_JOB = "run-benchmark" ]; then
 elif [ $GITHUB_JOB = "pgindent" ]; then
 	pip_packages="psycopg2 six testgres moto[s3] flask flask_cors boto3 pyOpenSSL yapf"
 else
-	pip_packages="psycopg2 six testgres moto[s3] flask flask_cors boto3 pyOpenSSL"
+	pip_packages="psycopg2 six testgres moto[s3] flask flask_cors boto3 pyOpenSSL cpp-coveralls"
 fi
 
 # install required packages
