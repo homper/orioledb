@@ -51,7 +51,18 @@ jobs:
         run: bash ./orioledb/ci/list_stuck.sh
         if: ${{ always() }}
       - name: Coveralls
-        run: bash ./orioledb/ci/coveralls.sh
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-          COVERALLS_PARALLEL: true
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel: true
+          path: orioledb
+          base-path: .
+          flag-name: run ${{ join(matrix.*, ' - ') }}
+
+  finish:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          parallel-finished: true
