@@ -50,13 +50,11 @@ jobs:
       - name: Show stuck processes
         run: bash ./orioledb/ci/list_stuck.sh
         if: ${{ always() }}
-      - name: Coveralls
-        uses: coverallsapp/github-action@v2
-        with:
-          parallel: true
-          path: orioledb
-          base-path: .
-          flag-name: run ${{ join(matrix.*, ' - ') }}
+      - run: ls -R orioledb
+      - name: Report Coveralls (Linux)
+        run: curl -sL https://coveralls.io/coveralls-linux.tar.gz | tar -xz && ./coveralls --debug --no-logo --parallel
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   finish:
     needs: check
