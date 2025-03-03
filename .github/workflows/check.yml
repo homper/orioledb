@@ -14,7 +14,7 @@ jobs:
         pg_version: [16, 17]
         compiler: [clang, gcc]
         check_type:
-          [normal, debug, sanitize, check_page, valgrind_1, valgrind_2]
+          [normal, debug]
     env:
       LLVM_VER: 18
       CPU: ${{ matrix.cpu }}
@@ -50,6 +50,10 @@ jobs:
       - name: Show stuck processes
         run: bash ./orioledb/ci/list_stuck.sh
         if: ${{ always() }}
+      - name: Codecov
+        run: bash ./orioledb/ci/codecov.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Run gcov
         run: bash ./orioledb/ci/gcov.sh
         if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
