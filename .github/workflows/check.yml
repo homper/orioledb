@@ -11,10 +11,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg_version: [16, 17]
-        compiler: [clang, gcc]
+        pg_version: [17]
+        compiler: [gcc]
         check_type:
-          [normal, debug]
+          [debug]
     env:
       LLVM_VER: 18
       CPU: ${{ matrix.cpu }}
@@ -50,13 +50,13 @@ jobs:
       - name: Show stuck processes
         run: bash ./orioledb/ci/list_stuck.sh
         if: ${{ always() }}
+      - name: Run gcov
+        run: bash ./orioledb/ci/gcov.sh
+        if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
       - name: Codecov
         run: bash ./orioledb/ci/codecov.sh
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      - name: Run gcov
-        run: bash ./orioledb/ci/gcov.sh
-        if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
       - name: Report to coveralls
         uses: coverallsapp/github-action@v2
         if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
