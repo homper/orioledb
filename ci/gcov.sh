@@ -2,8 +2,6 @@
 
 set -eu
 
-set -x
-
 cd orioledb
 if [ $COMPILER = "clang" ]; then
 	# llvm-cov-$LLVM_VER gcov src/*.c src/*/*.c include/*.h include/*/*.h -r -p -l
