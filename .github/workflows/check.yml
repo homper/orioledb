@@ -50,23 +50,20 @@ jobs:
       - name: Show stuck processes
         run: bash ./orioledb/ci/list_stuck.sh
         if: ${{ always() }}
-      # - name: Run gcov
-      #   run: bash ./orioledb/ci/gcov.sh
-      #   if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
+      - name: Run lcov
+        run: bash ./orioledb/ci/lcov.sh
+        if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
       - name: Codecov
         run: bash ./orioledb/ci/codecov.sh
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Report to coveralls
-        run: bash ./orioledb/ci/coveralls.sh
-        # uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@v2
         if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
-        # with:
-        #   flag-name: run-${{ join(matrix.*, '-') }}
-        #   parallel: true
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-          COVERALLS_PARALLEL: true
+        with:
+          flag-name: run-${{ join(matrix.*, '-') }}
+          parallel: true
+          files: ./orioledb/coverage.info
 
   finish:
     needs: check
