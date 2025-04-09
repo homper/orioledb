@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         pg_version: [17]
-        compiler: [gcc, clang]
+        compiler: [gcc]
         check_type:
           [debug]
     env:
@@ -64,6 +64,13 @@ jobs:
           flag-name: run-${{ join(matrix.*, '-') }}
           parallel: true
           files: ./orioledb/coverage.info
+      - name: Report code coverage by genhtml
+        uses: zgosalvez/github-actions-report-lcov@v4
+        with:
+          coverage-files: orioledb/coverage.info
+          minimum-coverage: 90
+          artifact-name: code-coverage-report
+          update-comment: false
 
   finish:
     needs: check
