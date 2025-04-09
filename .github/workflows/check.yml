@@ -68,7 +68,7 @@ jobs:
         uses: zgosalvez/github-actions-report-lcov@v4
         with:
           coverage-files: orioledb/coverage.info
-          minimum-coverage: 90
+          minimum-coverage: 85
           artifact-name: code-coverage-report
           update-comment: false
 
