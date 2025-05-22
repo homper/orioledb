@@ -1367,6 +1367,7 @@ o_perform_checkpoint(XLogRecPtr redo_pos, int flags)
 			{
 				BTreeDescr *desc;
 
+				if (!IS_SYS_TREE_OIDS(item->oids))
 				{
 					VarChar    *optionsArg = cstring_to_text("");
 					BTreePrintOptions printOptions = {0};
