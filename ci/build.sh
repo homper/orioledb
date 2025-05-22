@@ -12,24 +12,27 @@ if [ $CHECK_TYPE = "valgrind_1" ] || [ $CHECK_TYPE = "valgrind_2" ]; then
 	sed -i.bak "s/\/\* #define USE_VALGRIND \*\//#define USE_VALGRIND/g" postgresql/src/include/pg_config_manual.h
 fi
 
-# configure & build
-if [ $GITHUB_JOB = "run-benchmark" ]; then
-	# Asserts slow down the benchmarking, but we still need debug symbols for
-	# profiling.
-	CONFIG_ARGS="--enable-debug --disable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
-elif [ $CHECK_TYPE = "normal" ]; then
-	CONFIG_ARGS="--disable-debug --disable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
-else
-	CONFIG_ARGS="--enable-debug --enable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
-fi
+echo $CACHE_HIT
+if [ "$CACHE_HIT" != "true" ]; then
+	# configure & build
+	if [ $GITHUB_JOB = "run-benchmark" ]; then
+		# Asserts slow down the benchmarking, but we still need debug symbols for
+		# profiling.
+		CONFIG_ARGS="--enable-debug --disable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
+	elif [ $CHECK_TYPE = "normal" ]; then
+		CONFIG_ARGS="--disable-debug --disable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
+	else
+		CONFIG_ARGS="--enable-debug --enable-cassert --enable-tap-tests --with-icu --prefix=$GITHUB_WORKSPACE/pgsql"
+	fi
 
-cd postgresql
-./configure $CONFIG_ARGS
-make -sj `nproc`
-make -sj `nproc` install
-make -C contrib -sj `nproc`
-make -C contrib -sj `nproc` install
-cd ..
+	cd postgresql
+	./configure $CONFIG_ARGS
+	make -sj `nproc`
+	make -sj `nproc` install
+	make -C contrib -sj `nproc`
+	make -C contrib -sj `nproc` install
+	cd ..
+fi
 
 if [ $CHECK_TYPE = "static" ] && [ $COMPILER = "clang" ]; then
 	sed -i.bak "s/ -Werror=unguarded-availability-new//g" pgsql/lib/pgxs/src/Makefile.global
