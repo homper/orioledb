@@ -61,6 +61,8 @@
 #include "utils/memutils.h"
 #include "utils/rel.h"
 
+#include "valgrind/valgrind.h"
+
 /*
  * Single action in B-tree checkpoint loop.
  */
@@ -1365,6 +1367,24 @@ o_perform_checkpoint(XLogRecPtr redo_pos, int flags)
 			{
 				BTreeDescr *desc;
 
+				{
+					VarChar    *optionsArg = cstring_to_text("");
+					BTreePrintOptions printOptions = {0};
+					StringInfoData buf;
+					BTreeDescr *sys_desc = get_sys_tree(3);
+
+					init_print_options(&printOptions, optionsArg);
+
+					initStringInfo(&buf);
+					o_print_btree_pages(sys_desc, &buf,
+										sys_tree_key_print(sys_desc),
+										sys_tree_tup_print(sys_desc),
+										NULL, &printOptions, 32);
+
+					VALGRIND_PRINTF("TREE:\n%s\n", buf.data);
+					pfree(buf.data);
+				}
+				VALGRIND_PRINTF("item->oids: %u %u %u\n", item->oids.datoid, item->oids.reloid, item->oids.relnode);
 				if (IS_SYS_TREE_OIDS(item->oids))
 				{
 					desc = get_sys_tree(item->oids.reloid);
@@ -1377,6 +1397,8 @@ o_perform_checkpoint(XLogRecPtr redo_pos, int flags)
 											 true, NULL);
 					desc = &id->desc;
 				}
+
+				VALGRIND_PRINTF("punchHoles: desc: %p\n", desc);
 
 				try_to_punch_holes(desc);
 
