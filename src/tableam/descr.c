@@ -44,6 +44,8 @@
 #include "utils/syscache.h"
 #include "pgstat.h"
 
+#include "valgrind/valgrind.h"
+
 static OIndexDescr *get_index_descr(ORelOids ixOids, OIndexType ixType,
 									bool miss_ok);
 static void o_table_descr_fill_indices(OTableDescr *descr, OTable *table);
@@ -970,9 +972,23 @@ get_index_descr(ORelOids ixOids, OIndexType ixType, bool miss_ok)
 	OIndex	   *oIndex;
 	MemoryContext mcxt;
 
+	if (!IS_SYS_TREE_OIDS(ixOids))
+	{
+		VALGRIND_PRINTF("get_index_descr BEGIN: %u %u %u %d %c\n",
+						ixOids.datoid, ixOids.reloid, ixOids.relnode, ixType,
+						miss_ok ? 'Y' : 'N');
+	}
 	result = hash_search(oIndexDescrHash, &ixOids, HASH_ENTER, &found);
 	if (found)
+	{
+		if (!IS_SYS_TREE_OIDS(ixOids))
+		{
+			VALGRIND_PRINTF("get_index_descr RETURN 0: %u %u %u %d %c\n",
+							ixOids.datoid, ixOids.reloid, ixOids.relnode, ixType,
+							miss_ok ? 'Y' : 'N');
+		}
 		return result;
+	}
 
 	oIndex = o_indices_get(ixOids, ixType);
 	Assert(oIndex || miss_ok);
@@ -980,6 +996,12 @@ get_index_descr(ORelOids ixOids, OIndexType ixType, bool miss_ok)
 	{
 		(void) hash_search(oIndexDescrHash, &ixOids, HASH_REMOVE, &found);
 		Assert(found);
+		if (!IS_SYS_TREE_OIDS(ixOids))
+		{
+			VALGRIND_PRINTF("get_index_descr RETURN 1: %u %u %u %d %c\n",
+							ixOids.datoid, ixOids.reloid, ixOids.relnode, ixType,
+							miss_ok ? 'Y' : 'N');
+		}
 		return NULL;
 	}
 	mcxt = MemoryContextSwitchTo(descrCxt);
@@ -989,6 +1011,12 @@ get_index_descr(ORelOids ixOids, OIndexType ixType, bool miss_ok)
 						  oIndex->indexType, oIndex->table_persistence, oIndex->createOxid, result);
 	free_o_index(oIndex);
 
+	if (!IS_SYS_TREE_OIDS(ixOids))
+	{
+		VALGRIND_PRINTF("get_index_descr RETURN 2: %u %u %u %d %c\n",
+						ixOids.datoid, ixOids.reloid, ixOids.relnode, ixType,
+						miss_ok ? 'Y' : 'N');
+	}
 	return result;
 }
 

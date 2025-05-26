@@ -1102,8 +1102,24 @@ o_perform_checkpoint(XLogRecPtr redo_pos, int flags)
 	if (IsPostmasterEnvironment)
 		checkpoint_state->pid = MyProcPid;
 
-	elog(LOG, "orioledb checkpoint %u started",
-		 checkpoint_state->lastCheckpointNumber + 1);
+	{
+		VarChar    *optionsArg = cstring_to_text("");
+		BTreePrintOptions printOptions = {0};
+		StringInfoData buf;
+		BTreeDescr *sys_desc = get_sys_tree(3);
+
+		init_print_options(&printOptions, optionsArg);
+
+		initStringInfo(&buf);
+		o_print_btree_pages(sys_desc, &buf,
+							sys_tree_key_print(sys_desc),
+							sys_tree_tup_print(sys_desc),
+							NULL, &printOptions, 32);
+
+		VALGRIND_PRINTF("TREE:\n%s\n", buf.data);
+		pfree(buf.data);
+	}
+	VALGRIND_PRINTF("orioledb checkpoint %u started\n", checkpoint_state->lastCheckpointNumber + 1);
 
 	o_set_syscache_hooks();
 	o_database_cache_set_database_encoding();
@@ -1396,6 +1412,7 @@ o_perform_checkpoint(XLogRecPtr redo_pos, int flags)
 
 					id = o_fetch_index_descr(item->oids, item->type,
 											 true, NULL);
+					VALGRIND_PRINTF("id: %s %u %u\n", id->name.data, id->oids.reloid, id->oids.relnode);
 					desc = &id->desc;
 				}
 

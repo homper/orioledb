@@ -56,6 +56,8 @@
 #include "utils/ruleutils.h"
 #include "utils/syscache.h"
 
+#include "valgrind/valgrind.h"
+
 /*
  * Relation locks from recovery workers may conflict with PostgreSQL WAL locks
  * that leads to deadlocks. We need to have own relation locks for
@@ -957,7 +959,7 @@ o_tables_oids_indexes(OTable *old_table, OTable *new_table,
 			Assert(old_table);
 			if (!reuse_relnode)
 			{
-				elog(DEBUG2, "o_indices del (%u, %u, %u, %u) - (%u, %u, %u)",
+				VALGRIND_PRINTF("o_indices del (%u, %u, %u, %u) - (%u, %u, %u)\n",
 					 old_keys[i].type,
 					 old_keys[i].oids.datoid,
 					 old_keys[i].oids.reloid,
