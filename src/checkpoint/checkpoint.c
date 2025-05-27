@@ -1412,6 +1412,12 @@ o_perform_checkpoint(XLogRecPtr redo_pos, int flags)
 
 					id = o_fetch_index_descr(item->oids, item->type,
 											 true, NULL);
+					VALGRIND_PRINTF("id: %p\n", id);
+					if (id == NULL)
+					{
+						/* table might be deleted */
+						continue;
+					}
 					VALGRIND_PRINTF("id: %s %u %u\n", id->name.data, id->oids.reloid, id->oids.relnode);
 					desc = &id->desc;
 				}
