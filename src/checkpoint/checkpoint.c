@@ -538,13 +538,6 @@ add_index_id_item(List *list, BTreeDescr *desc)
 	item->chkpNum = checkpoint_state->lastCheckpointNumber;
 	item->freeExtents = OCompressIsValid(desc->compress);
 	item->cleanupMap = false;
-	if (!IS_SYS_TREE_OIDS(desc->oids))
-	{
-		VALGRIND_PRINTF("add_index_id_item: %u %u %u: punchHoles: %c && !%c",
-						desc->oids.datoid, desc->oids.reloid, desc->oids.relnode,
-						orioledb_use_sparse_files ? 'Y' : 'N',
-						OCompressIsValid(desc->compress) ? 'Y' : 'N');
-	}
 	item->punchHoles = orioledb_use_sparse_files && !OCompressIsValid(desc->compress);
 	if (remove_old_checkpoint_files)
 	{
