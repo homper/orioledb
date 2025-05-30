@@ -2,15 +2,6 @@ name: rpm
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to build'
-        required: true
-        default: '14'
-      target:
-        description: 'Target to build'
-        required: true
-        default: 'nosignbuild14'
 
 jobs:
   build_rpms:
