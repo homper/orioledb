@@ -57,5 +57,5 @@ jobs:
             PG_MAJOR=${{ matrix.postgres }}
             BUILD_CC_COMPILER=${{ matrix.compiler }}
             DOCKER_PG_LLVM_DEPS=llvm-dev clang
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
