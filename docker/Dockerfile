@@ -206,6 +206,7 @@ RUN set -eux; \
 	make -j "$(nproc)"; \
 	make install;
 
+# REMOVE_WHEN_CACHING BEGIN
 RUN set -eux; \
 	cd /usr/src/postgresql; \
 	\
@@ -258,9 +259,12 @@ COPY --chown=postgres:postgres docker/init/postgresql.docker.conf /etc/postgresq
 ENV PG_CONF=/etc/postgresql/postgresql.conf
 
 ENV POSTGRES_INITDB_ARGS="--locale-provider=icu --icu-locale=en"
+# REMOVE_WHEN_CACHING END
 
 COPY docker/init/docker-entrypoint.sh /usr/local/bin/
+# REMOVE_WHEN_CACHING BEGIN
 COPY docker/init/default-orioledb.sh /docker-default-initdb.d/
+# REMOVE_WHEN_CACHING END
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # We set the default STOPSIGNAL to SIGINT, which corresponds to what PostgreSQL
