@@ -124,6 +124,16 @@ RUN set -eux; \
 		lz4-dev \
 	; \
 	\
+	apk add --no-cache \
+		bash \
+		su-exec \
+		# tzdata is optional, but only adds around 1Mb to image size and is recommended by Django documentation:
+		# https://docs.djangoproject.com/en/1.10/ref/databases/#optimizing-postgresql-s-configuration
+		tzdata \
+		# install extra icu packages ( >=Alpine3.16 )
+		$EXTRA_ICU_PACKAGES \
+	; \
+	\
 	curl -o postgresql.tar.gz \
 			--header "Accept: application/vnd.github.v3.raw" \
 			--remote-name \
@@ -187,17 +197,34 @@ RUN set -eux; \
 		# Therefore, the extra ${POSTGRESQL_VERSION} is added as a workaround.
 		--with-extra-version=" ${ORIOLEDB_VERSION} PGTAG=${PGTAG} alpine:${ALPINE_VERSION}+${BUILD_CC_COMPILER} build:${ORIOLEDB_BUILDTIME} ${POSTGRESQL_VERSION}" \
 	|| cat config.log ); \
-	echo "ORIOLEDB_PATCHSET_VERSION = `echo $PGTAG | cut -d'_' -f2`" >> src/Makefile.global; \
+	echo "ORIOLEDB_PATCHSET_VERSION = `echo $PGTAG | cut -d'_' -f2`" >> src/Makefile.global;
+
+RUN set -eux; \
+	cd /usr/src/postgresql; \
+	\
 	# install postgresql
 	make -j "$(nproc)"; \
+	make install;
+
+RUN set -eux; \
+	cd /usr/src/postgresql; \
+	\
 	make -C contrib -j "$(nproc)"; \
-	make install; \
-	make -C contrib install; \
+	make -C contrib install;
+
+RUN set -eux; \
 	# install orioledb extension
 	cd /usr/src/postgresql/contrib/orioledb; \
 	make USE_PGXS=1 IS_DEV=1 -j "$(nproc)"; \
-	make USE_PGXS=1 IS_DEV=1 install; \
-	\
+	make USE_PGXS=1 IS_DEV=1 install;
+
+RUN set -eux; \
+	# Verify PostgreSQL installation
+	cd / ; \
+	postgres --version ; \
+	initdb --version
+
+RUN set -eux; \
 	# Clean up only if not in debug mode
 	if [ "$DEBUG_MODE" != "true" ]; then \
 		runDeps="$( \
@@ -219,20 +246,7 @@ RUN set -eux; \
 			/usr/local/share/man \
 			/tmp/* \
 		; \
-	fi ; \
-	\
-	apk add --no-cache \
-		bash \
-		su-exec \
-		# tzdata is optional, but only adds around 1Mb to image size and is recommended by Django documentation:
-		# https://docs.djangoproject.com/en/1.10/ref/databases/#optimizing-postgresql-s-configuration
-		tzdata \
-		# install extra icu packages ( >=Alpine3.16 )
-		$EXTRA_ICU_PACKAGES \
-	; \
-	cd / ; \
-	postgres --version ; \
-	initdb --version
+	fi ;
 
 ENV PGDATA=/var/lib/postgresql/data
 # this 777 will be replaced by 700 at runtime (allows semi-arbitrary "--user" values)

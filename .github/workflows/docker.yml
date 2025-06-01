@@ -13,7 +13,7 @@ jobs:
         postgres: [16, 17]
         compiler: [clang]
         distr: [alpine, ubuntu]
-        cpu: [amd64, arm64]
+        cpu: [amd64]
         include:
           - distr-version: 3.21
             distr: alpine
@@ -57,5 +57,5 @@ jobs:
             PG_MAJOR=${{ matrix.postgres }}
             BUILD_CC_COMPILER=${{ matrix.compiler }}
             DOCKER_PG_LLVM_DEPS=llvm-dev clang
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ github.ref_name }}-pg${{ matrix.postgres }}-pg${{ matrix.distr }}-pg${{ matrix.cpu }}
+          cache-to: type=gha,scope=${{ github.ref_name }}-pg${{ matrix.postgres }}-pg${{ matrix.distr }}-pg${{ matrix.cpu }},mode=max
