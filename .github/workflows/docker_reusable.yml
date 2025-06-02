@@ -78,5 +78,5 @@ jobs:
             PG_MAJOR=${{ matrix.postgres }}
             BUILD_CC_COMPILER=${{ matrix.compiler }}
             DOCKER_PG_LLVM_DEPS=llvm-dev clang
-          cache-to: ${{ inputs.caching_layers && format('type=gha,scope={0}-{1}-pg{2}-{3}-{4},mode=max', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
-          cache-from: ${{ !inputs.caching_layers && format('type=gha,scope={0}-{1}-pg{2}-{3}-{4}', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
+          cache-to: ${{ inputs.caching_layers && format('type=gha,scope={1}-pg{2}-{3}-{4},mode=max', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
+          cache-from: ${{ !inputs.caching_layers && format('type=gha,scope={1}-pg{2}-{3}-{4}', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
