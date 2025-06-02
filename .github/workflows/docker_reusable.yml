@@ -29,6 +29,13 @@ jobs:
     name: Docker
     runs-on: ubuntu-latest
     steps:
+
+      - name: Print vars
+        shell: bash
+        run: |
+          echo pushing:${{ inputs.pushing }}
+          echo tags:${{ github.event.inputs.tags }}
+
       - name: Check out the repo
         uses: actions/checkout@v4
 
