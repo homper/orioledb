@@ -1,9 +1,14 @@
 name: dockerhub
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
-  push:
-  pull_request:
+    inputs:
+      tags:
+        description: "Dockerhub tags"
+        required: false
+        default: ""
 
 jobs:
   cache_layers:
