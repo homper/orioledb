@@ -58,16 +58,20 @@ jobs:
             suffix=${{ contains(github.ref, 's3') && '-s3' || '' }}-pg${{ matrix.postgres }}${{ matrix.distr == 'ubuntu' && '-ubuntu' || '' }},onlatest=true
 
       - name: Modify dockerfiles
-        if: ${{ inputs.caching_layers }}
         shell: bash
         run: |
-          sed -i '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile
-          sed -i '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile.ubuntu
+          if [ ${{ inputs.caching_layers }} == 'true' ]; then
+            sed '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile >${{ github.workspace }}/Dockerfile
+            sed -i '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile.ubuntu >${{ github.workspace }}/Dockerfile.ubuntu
+          else
+            cp docker/Dockerfile ${{ github.workspace }}/Dockerfile
+            cp docker/Dockerfile.ubuntu ${{ github.workspace }}/Dockerfile.ubuntu
+          fi
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ matrix.distr == 'ubuntu' && './docker/Dockerfile.ubuntu' || './docker/Dockerfile' }}
+          file: ${{ format(matrix.distr == 'ubuntu' && '{0}/Dockerfile.ubuntu' || '{0}/Dockerfile', github.workspace) }}
           platforms: linux/${{ matrix.cpu }}
           push: ${{ inputs.pushing }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -78,5 +82,5 @@ jobs:
             PG_MAJOR=${{ matrix.postgres }}
             BUILD_CC_COMPILER=${{ matrix.compiler }}
             DOCKER_PG_LLVM_DEPS=llvm-dev clang
-          cache-to: ${{ inputs.caching_layers && format('type=gha,scope={1}-pg{2}-{3}-{4},mode=max', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
-          cache-from: ${{ !inputs.caching_layers && format('type=gha,scope={1}-pg{2}-{3}-{4}', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
+          cache-to: ${{ inputs.caching_layers && format('type=gha,scope={0}-{1}-pg{2}-{3}-{4},mode=max', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
+          cache-from: ${{ !inputs.caching_layers && format('type=gha,scope={0}-{1}-pg{2}-{3}-{4}', github.ref_name, github.sha, matrix.postgres, matrix.distr, matrix.cpu) || '' }}
