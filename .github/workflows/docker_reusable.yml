@@ -62,7 +62,7 @@ jobs:
         run: |
           if [ ${{ inputs.caching_layers }} == 'true' ]; then
             sed '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile >${{ runner.temp }}/Dockerfile
-            sed -i '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile.ubuntu >${{ runner.temp }}/Dockerfile.ubuntu
+            sed '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile.ubuntu >${{ runner.temp }}/Dockerfile.ubuntu
           else
             cp docker/Dockerfile ${{ runner.temp }}/Dockerfile
             cp docker/Dockerfile.ubuntu ${{ runner.temp }}/Dockerfile.ubuntu
