@@ -57,21 +57,22 @@ jobs:
             prefix=
             suffix=${{ contains(github.ref, 's3') && '-s3' || '' }}-pg${{ matrix.postgres }}${{ matrix.distr == 'ubuntu' && '-ubuntu' || '' }},onlatest=true
 
-      - name: Modify dockerfiles
+      - name: Modify Dockerfiles
         shell: bash
         run: |
           if [ ${{ inputs.caching_layers }} == 'true' ]; then
-            sed '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile >${{ github.workspace }}/Dockerfile
-            sed -i '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile.ubuntu >${{ github.workspace }}/Dockerfile.ubuntu
+            sed '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile >${{ runner.temp }}/Dockerfile
+            sed -i '/^# REMOVE_WHEN_CACHING BEGIN$/,/^# REMOVE_WHEN_CACHING END$/d' docker/Dockerfile.ubuntu >${{ runner.temp }}/Dockerfile.ubuntu
           else
-            cp docker/Dockerfile ${{ github.workspace }}/Dockerfile
-            cp docker/Dockerfile.ubuntu ${{ github.workspace }}/Dockerfile.ubuntu
+            cp docker/Dockerfile ${{ runner.temp }}/Dockerfile
+            cp docker/Dockerfile.ubuntu ${{ runner.temp }}/Dockerfile.ubuntu
           fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ format(matrix.distr == 'ubuntu' && '{0}/Dockerfile.ubuntu' || '{0}/Dockerfile', github.workspace) }}
+          file: ${{ format(matrix.distr == 'ubuntu' && '{0}/Dockerfile.ubuntu' || '{0}/Dockerfile', runner.temp) }}
           platforms: linux/${{ matrix.cpu }}
           push: ${{ inputs.pushing }}
           tags: ${{ steps.meta.outputs.tags }}
