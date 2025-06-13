@@ -55,7 +55,7 @@ jobs:
         run: bash ./orioledb/ci/lcov.sh
       - name: create artifact for coverage.info
         if: ${{ matrix.check_type != 'sanitize' && matrix.check_type != 'check_page' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.pg_version }}_${{ matrix.compiler }}_${{ matrix.check_type }}_coverage.info
           path: ./orioledb/coverage.info
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Retrieve saved coverage.infos
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
       - name: Merge coverage files
         shell: bash
         run: |
