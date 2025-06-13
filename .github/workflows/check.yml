@@ -62,7 +62,7 @@ jobs:
           retention-days: 1 # TODO: Remove all artifacts at the workflow end
 
   finish:
-    needs: check
+    # needs: check
     runs-on: ubuntu-latest
     steps:
       - name: Retrieve saved coverage.infos
@@ -70,9 +70,10 @@ jobs:
       - name: Merge coverage files
         shell: bash
         run: |
+          set -x
           sudo apt-get update -qq
           sudo apt-get install lcov
-          lcov --add-tracefile *coverage.info -o coverage.info
+          lcov $(ls -d1 *coverage.info | xargs -I{} echo "-a {}") -o coverage.info
       - name: codecov
         run: bash <(curl -s https://codecov.io/bash) -X gcov
         env:
