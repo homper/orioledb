@@ -14,13 +14,6 @@ if [ $oomcount != $oomsbefore ]; then
     status=1
 fi
 
-# show diff if it exists
-for f in ` find ./orioledb/test ./postgresql/src/test -type f \( -name 'regression.diffs' -o -name 'isolation_filtered.diffs' \) ` ; do
-	echo "========= Contents of $f"
-	cat $f
-	status=1
-done
-
 # show valgrind logs if needed
 if [ $CHECK_TYPE = "valgrind_1" ] || [ $CHECK_TYPE = "valgrind_2" ]; then
 	for f in ` find . -name pid-*.log ` ; do
@@ -38,6 +31,19 @@ if [ $CHECK_TYPE = "valgrind_1" ] || [ $CHECK_TYPE = "valgrind_2" ]; then
 else
 	cores=$(find /tmp/cores-$GITHUB_SHA-$TIMESTAMP/ -name '*.core' 2>/dev/null)
 fi
+
+for f in ` find . -name 'ubsan.log.*' ` ; do
+	echo "========= Contents of $f"
+	cat $f
+	status=1
+done
+
+for f in ` find . -name 'asan.log.*' ` ; do
+	echo "========= Contents of $f"
+	cat $f
+	status=1
+done
+
 
 if [ -n "$cores" ]; then
 	for corefile in $cores ; do
@@ -58,17 +64,4 @@ if [ -n "$cores" ]; then
 fi
 
 rm -rf /tmp/cores-$GITHUB_SHA-$TIMESTAMP
-
-for f in ` find . -name 'ubsan.log.*' ` ; do
-	echo "========= Contents of $f"
-	cat $f
-	status=1
-done
-
-for f in ` find . -name 'asan.log.*' ` ; do
-	echo "========= Contents of $f"
-	cat $f
-	status=1
-done
-
 exit $status
