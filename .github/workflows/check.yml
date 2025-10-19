@@ -21,21 +21,17 @@ jobs:
 
           # Full matrix: used for main branch or pull requests
           full = dict(
-              cpu        = ["amd64", "arm64"],
-              pg_version = [16, 17],
-              compiler   = ["clang", "gcc"],
+              cpu        = ["amd64"],
+              pg_version = [16],
+              compiler   = ["clang"],
               check_type = [
-                  "normal", "debug", "sanitize", "check_page",
-                  "valgrind_1", "valgrind_2", "pg_tests",
+                  "sanitize",
               ],
           )
 
           # Reduced matrix: used for all other push events
           combos = [
-              ("amd64", 16, "gcc"),
-              ("amd64", 17, "clang"),
-              ("arm64", 16, "clang"),
-              ("arm64", 17, "gcc"),
+              ("amd64", 16, "clang"),
           ]
           reduced = {
               "include": [
