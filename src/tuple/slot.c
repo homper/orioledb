@@ -481,6 +481,8 @@ tts_orioledb_getsysattr(TupleTableSlot *slot, int attnum, bool *isnull)
 		ORowIdAddendumNonCtid addNonCtid;
 		Pointer		ptr;
 
+		ASAN_UNPOISON_MEMORY_REGION(isnull, sizeof(*isnull));
+
 		if (oslot->rowid)
 		{
 			*isnull = false;
