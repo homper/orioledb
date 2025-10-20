@@ -13,8 +13,8 @@ if [ $CHECK_TYPE = "valgrind_1" ] || [ $CHECK_TYPE = "valgrind_2" ]; then
 fi
 
 if [ $CHECK_TYPE = "sanitize" ]; then
-	export CFLAGS="-fno-omit-frame-pointer -fsanitize=alignment -fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fno-sanitize=nonnull-attribute -fstack-protector"
-	export LDFLAGS="-fsanitize=address -fsanitize=undefined"
+	export CFLAGS="-fno-omit-frame-pointer -fsanitize=alignment -fsanitize=address -fno-sanitize-recover=all -fno-sanitize=nonnull-attribute -fstack-protector"
+	export LDFLAGS="-fsanitize=address"
 fi
 
 # configure & build
@@ -46,7 +46,7 @@ export PATH="$GITHUB_WORKSPACE/pgsql/bin:$PATH"
 
 cd orioledb
 if [ $CHECK_TYPE = "sanitize" ]; then
-	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror"
+	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -fsanitize=undefined" LDFLAGS_SL="-fsanitize=undefined"
 elif [ $CHECK_TYPE = "check_page" ]; then
 	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -DCHECK_PAGE_STRUCT -DCHECK_PAGE_STATS"
 elif [ $CHECK_TYPE != "static" ]; then
