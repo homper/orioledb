@@ -32,6 +32,8 @@ else
 	cores=$(find /tmp/cores-$GITHUB_SHA-$TIMESTAMP/ -name '*.core' 2>/dev/null)
 fi
 
+ls
+
 for f in ` find . -name 'ubsan.log.*' ` ; do
 	echo "========= Contents of $f"
 	cat $f
