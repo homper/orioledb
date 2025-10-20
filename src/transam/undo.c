@@ -2429,8 +2429,10 @@ o_add_rewind_relfilenode_undo_item(RelFileNode *onCommit, RelFileNode *onAbort,
 	item->nCommitRels = nOnCommit;
 	item->nAbortRels = nOnAbort;
 
-	memcpy(item->rels, onCommit, sizeof(RelFileNode) * nOnCommit);
-	memcpy(&item->rels[nOnCommit], onAbort, sizeof(RelFileNode) * nOnAbort);
+	if (nOnCommit > 0)
+		memcpy(item->rels, onCommit, sizeof(RelFileNode) * nOnCommit);
+	if (nOnAbort > 0)
+		memcpy(&item->rels[nOnCommit], onAbort, sizeof(RelFileNode) * nOnAbort);
 
 	add_new_undo_stack_item(UndoLogSystem, location);
 
