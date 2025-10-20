@@ -12,6 +12,11 @@ if [ $CHECK_TYPE = "valgrind_1" ] || [ $CHECK_TYPE = "valgrind_2" ]; then
 	sed -i.bak "s/\/\* #define USE_VALGRIND \*\//#define USE_VALGRIND/g" postgresql/src/include/pg_config_manual.h
 fi
 
+if [ $CHECK_TYPE = "sanitize" ]; then
+	export CFLAGS="-fno-omit-frame-pointer -fsanitize=alignment -fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fno-sanitize=nonnull-attribute -fstack-protector"
+	export LDFLAGS="-fsanitize=address -fsanitize=undefined"
+fi
+
 # configure & build
 if [ $GITHUB_JOB = "run-benchmark" ]; then
 	# Asserts slow down the benchmarking, but we still need debug symbols for
@@ -25,6 +30,8 @@ fi
 
 cd postgresql
 ./configure $CONFIG_ARGS
+echo "========= Contents of config.log"
+cat config.log
 make -sj `nproc`
 make -sj `nproc` install
 make -C contrib -sj `nproc`
@@ -39,11 +46,9 @@ export PATH="$GITHUB_WORKSPACE/pgsql/bin:$PATH"
 
 cd orioledb
 if [ $CHECK_TYPE = "sanitize" ]; then
-	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -fno-omit-frame-pointer -fsanitize=alignment -fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fno-sanitize=nonnull-attribute -fstack-protector" LDFLAGS_SL="-lubsan -fsanitize=address -fsanitize=undefined -lasan"
+	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror"
 elif [ $CHECK_TYPE = "check_page" ]; then
 	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -DCHECK_PAGE_STRUCT -DCHECK_PAGE_STATS"
-elif [ $CHECK_TYPE = "valgrind_1" ] || [ $CHECK_TYPE = "valgrind_2" ]; then
-	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -coverage -fprofile-update=atomic -flto"
 elif [ $CHECK_TYPE != "static" ]; then
 	make -j `nproc` USE_PGXS=1 IS_DEV=1 CFLAGS_SL="$(pg_config --cflags_sl) -Werror -coverage -fprofile-update=atomic"
 fi

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 status=0
 
@@ -32,7 +32,7 @@ else
 	cores=$(find /tmp/cores-$GITHUB_SHA-$TIMESTAMP/ -name '*.core' 2>/dev/null)
 fi
 
-ls
+ls ./orioledb
 
 for f in ` find . -name 'ubsan.log.*' ` ; do
 	echo "========= Contents of $f"
