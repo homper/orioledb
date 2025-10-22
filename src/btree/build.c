@@ -164,7 +164,8 @@ put_item_to_stack(BTreeDescr *desc, OIndexBuildStackItem *stack, int level,
 		tuple_ptr = BTREE_PAGE_LOCATOR_GET_ITEM(stack[level].img, &stack[level].loc);
 		memcpy(tuple_ptr, tupleheader, header_size);
 		tuple_ptr += header_size;
-		memcpy(tuple_ptr, tuple.data, tuplesize);
+		if (tuplesize > 0)
+			memcpy(tuple_ptr, tuple.data, tuplesize);
 		BTREE_PAGE_SET_ITEM_FLAGS(stack[level].img, &stack[level].loc, tuple.formatFlags);
 
 		BTREE_PAGE_LOCATOR_NEXT(stack[level].img, &stack[level].loc);

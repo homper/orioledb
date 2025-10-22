@@ -1537,8 +1537,9 @@ orioledb_rescan(TableScanDesc sscan, ScanKey key, bool set_params,
 	scan = (OScanDesc) sscan;
 	descr = relation_get_descr(scan->rs_base.rs_rd);
 
-	memcpy(scan->rs_base.rs_key, key, sizeof(ScanKeyData) *
-		   scan->rs_base.rs_nkeys);
+	if (key != NULL && scan->rs_base.rs_nkeys > 0)
+		memcpy(scan->rs_base.rs_key, key, sizeof(ScanKeyData) *
+			   scan->rs_base.rs_nkeys);
 
 	if (scan->scan)
 		free_btree_seq_scan(scan->scan);
