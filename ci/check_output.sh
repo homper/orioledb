@@ -46,6 +46,9 @@ for f in ` find . -name 'asan.log.*' ` ; do
 	status=1
 done
 
+echo "========= Contents of postmaster.log"
+grep "runtime" orioledb/test/log/postmaster.log
+
 
 if [ -n "$cores" ]; then
 	for corefile in $cores ; do
