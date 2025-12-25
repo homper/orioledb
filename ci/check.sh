@@ -29,7 +29,7 @@ if [ $CHECK_TYPE = "valgrind_1" ]; then
 	# 	((i++));
 	# done
 	# make USE_PGXS=1 IS_DEV=1 VALGRIND=1 testgrescheck_part_1 TESTGRESCHECKS_PART_1="test.t.replication_test.ReplicationTest.test_replication_in_progress"
-	make USE_PGXS=1 IS_DEV=1 VALGRIND=1 regresscheck REGRESSCHECKS="index_bridging opclass"
+	make USE_PGXS=1 IS_DEV=1 VALGRIND=1 regresscheck
 	# make USE_PGXS=1 IS_DEV=1 VALGRIND=1 testgrescheck_part_1 TESTGRESCHECKS_PART_1="test.t.replication_test.ReplicationTest.test_replication_non_root_eviction"
 elif [ $CHECK_TYPE = "valgrind_2" ]; then
 	make USE_PGXS=1 IS_DEV=1 VALGRIND=1 testgrescheck_part_2 -j $(nproc) || status=$?
